@@ -36,7 +36,7 @@ public class MemberSaveRequestDto {
                 .location(location)
                 .createdDate(LocalDateTime.now())
                 .rating(0)
-                .role(Role.MEMBER)
+                .role(Role.USER)
                 .build();
     }
 

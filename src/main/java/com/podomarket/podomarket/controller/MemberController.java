@@ -3,16 +3,20 @@ package com.podomarket.podomarket.controller;
 import com.podomarket.podomarket.dto.MemberResponseDto;
 import com.podomarket.podomarket.dto.MemberSaveRequestDto;
 import com.podomarket.podomarket.dto.MemberUpdateRequestDto;
+import com.podomarket.podomarket.jwt.JwtUtil;
 import com.podomarket.podomarket.service.MemberService;
 import com.podomarket.podomarket.service.SmsCertificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
 
 @RequiredArgsConstructor
 @RestController
 public class MemberController {
 
     private final MemberService memberService;
+    private final JwtUtil jwtUtil;
     private final SmsCertificationService smsCertificationService;
 
     @PostMapping("/register")
@@ -21,8 +25,16 @@ public class MemberController {
     }
 
     @GetMapping("/login")
-    public Long login(String phoneNumber) {
-        return memberService.checkPhoneNumber(phoneNumber);
+    public Long login(String phoneNumber, HttpServletResponse response) {
+        Long memberId = memberService.checkPhoneNumber(phoneNumber);
+
+        if (memberId != null) {
+            String token = jwtUtil.generateToken(memberId);
+            response.setHeader("Authorization", token);
+            System.out.println("token : " + token);
+        }
+
+        return memberId;
     }
 
     @GetMapping("/members/{id}")
