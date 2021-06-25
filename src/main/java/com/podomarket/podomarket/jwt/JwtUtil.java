@@ -8,16 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
@@ -26,6 +20,7 @@ public class JwtUtil {
 
     @Value("${jwt.secret-key}")
     private String secretKey;
+    private long exp = 1000L * 60 * 60 * 24 * 30;
 
     private String createToken(Map<String, Object> claims) {
         String secretKeyEncodeBase64 = Encoders.BASE64.encode(secretKey.getBytes());
@@ -38,7 +33,7 @@ public class JwtUtil {
                 .signWith(key)
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 30 * 1000 * 60 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + exp))
                 .compact();
     }
 
@@ -69,13 +64,8 @@ public class JwtUtil {
         return createToken(claims);
     }
 
-    public boolean validateToken(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey.getBytes()).build().parseClaimsJws(token);
-            return !claims.getBody().getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
+    public void validateToken(String token) {
+        Jwts.parserBuilder().setSigningKey(secretKey.getBytes()).build().parseClaimsJws(token);
     }
 
 }
