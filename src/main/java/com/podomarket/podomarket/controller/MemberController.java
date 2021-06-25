@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -24,17 +26,21 @@ public class MemberController {
         return memberService.save(requestDto);
     }
 
+    @ResponseBody
     @GetMapping("/login")
-    public Long login(String phoneNumber, HttpServletResponse response) {
+    public Map<String, Object> login(String phoneNumber, HttpServletResponse response) {
         Long memberId = memberService.checkPhoneNumber(phoneNumber);
+        Map<String, Object> result = new HashMap<>();
+        result.put("memberId", memberId);
 
         if (memberId != null) {
             String token = jwtUtil.generateToken(memberId);
             response.setHeader("Authorization", token);
+            result.put("token", token);
             System.out.println("token : " + token);
         }
 
-        return memberId;
+        return result;
     }
 
     @GetMapping("/members/{id}")
